@@ -18,7 +18,7 @@
 ### clone代码 
 
 ```
-git clone {code_path}
+git clone https://github.com/xiaominfc/teamtalk_dart_lib.git
 cd teamtalk_dart_lib
 pub get
 dart ./echo_client.dart
@@ -30,6 +30,8 @@ dart ./echo_client.dart
 [web_im](http://chat.xiaominfc.com/im)
 
 登录 然后跟xiaominfc聊一下 哈哈
+
+
 
 
 ## 关于dart pb文件的生成
