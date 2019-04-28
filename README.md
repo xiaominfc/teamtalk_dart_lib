@@ -31,7 +31,7 @@ dart ./echo_client.dart
 
 登录 然后跟xiaominfc聊一下 哈哈
 
-
+i[preview](https://raw.githubusercontent.com/xiaominfc/teamtalk_dart_lib/master/test_preview.png)
 
 
 ## 关于dart pb文件的生成
