@@ -1,0 +1,8 @@
+name:
+  teamtalk_dart_lib
+
+dependencies:
+  protobuf: ^0.13.0
+  convert: ^2.1.1
+  crypto: ^2.0.6
+  pointycastle: ^1.0.0
