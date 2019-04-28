@@ -15,6 +15,10 @@ class Utils {
         var digest = md5.convert(utf8.encode(text));
         return hex.encode(digest.bytes);
     }
+
+    static int unixTime(){
+      return new DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    }
 }
 
 

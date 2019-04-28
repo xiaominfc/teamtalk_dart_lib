@@ -12,6 +12,7 @@ import "../pb/IM.Message.pb.dart";
 import './base.dart';
 import './service.dart';
 import './security.dart';
+import './utils.dart';
 
 
 
@@ -44,7 +45,11 @@ class IMServiceManager {
     int serviceId = pdu.serviceId;
     int commandId = pdu.commandId;
     print("serviceId:$serviceId   commandId:$commandId");
-    servicesMap[serviceId].handle(pdu);
+
+    var service = servicesMap[serviceId];
+    if(service != null) {
+      service.handle(pdu);
+    }
   }
 }
 
@@ -98,16 +103,26 @@ class IMClient extends IMBaseClient {
   }
 
 
+  _sendMsg(IMMsgData data) {
+     data.fromUserId = userID();
+     data.msgId = 0;
+     data.createTime = Utils.unixTime();
+     imMessageService.sendChatMessage(data).then((dataAck){
+       print("send ok");
+     });
+  }
+
+  // 发送 一条文本消息 单聊
   sendTextMsg(String msg, int toID){
      IMMsgData data = IMMsgData.create();
-     data.fromUserId = userID();
      data.toSessionId = toID;
-     data.msgId = 0;
-     data.createTime =0;
      data.msgData = utf8.encode(security.encryptText(msg));
      data.msgType = MsgType.MSG_TYPE_SINGLE_TEXT;
-     //print(data);
-     imMessageService.sendChatMessage(data);
+     _sendMsg(data);
+  }
+
+  sureReadMsg(IMMsgData data){
+    imMessageService.sureReadMessage(data);
   }
 
 

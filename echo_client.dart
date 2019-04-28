@@ -28,6 +28,7 @@ main() {
         imClient.registerNewMsgHandler((data){
             var msg = security.decryptText(new String.fromCharCodes(data.msgData));
             print("handle new msg:" + msg);
+            imClient.sureReadMsg(data);
             imClient.sendTextMsg("echo:" + msg , data.fromUserId);
         });
 
