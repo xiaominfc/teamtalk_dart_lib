@@ -37,3 +37,20 @@ dart ./echo_client.dart
 ## 关于dart pb文件的生成
 
 [Dart plugin for the protoc compile](https://github.com/dart-lang/protobuf/tree/master/protoc_plugin)
+
+
+## 进展
+
+````
+1. 目前只实现了 登录 接收消息 发送消息 心跳等接口
+2. 解决了消息加解密的问题
+3. 跟服务端pb保持一致
+
+````
+
+## 后续
+
+````
+实现其他相关接口
+实现一个flutter版客户端
+````
