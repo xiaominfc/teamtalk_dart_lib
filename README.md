@@ -15,7 +15,7 @@
 [https://www.dartlang.org/install](https://www.dartlang.org/install)
 
 
-### clone代码并运行
+### clone代码并运行echo客户端
 
 ```
 git clone https://github.com/xiaominfc/teamtalk_dart_lib.git
@@ -45,7 +45,7 @@ dart ./echo_client.dart
 1. 目前只实现了 登录 接收消息 发送消息 心跳等接口
 2. 解决了消息加解密的问题
 3. 跟服务端pb保持一致
-
+4. 实现了一个echo客户端
 ````
 
 ## 后续
