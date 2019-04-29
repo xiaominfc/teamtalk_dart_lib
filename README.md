@@ -15,7 +15,7 @@
 [https://www.dartlang.org/install](https://www.dartlang.org/install)
 
 
-### clone代码 
+### clone代码并运行
 
 ```
 git clone https://github.com/xiaominfc/teamtalk_dart_lib.git
