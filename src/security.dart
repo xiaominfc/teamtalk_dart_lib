@@ -29,8 +29,8 @@ class TTPKCSPadding extends BasePadding {
   int addPadding(Uint8List data, int offset) {
     
     if(offset > 0){
-        data[data.length - 1] = offset
-        return data.length - offset
+        data[data.length - 1] = offset;
+        return data.length - offset;
     }
 
     return offset;

@@ -116,7 +116,7 @@ class IMMessageService extends IMBaseService {
        if(data.msgType == MsgType.MSG_TYPE_SINGLE_TEXT||  data.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
         readAck.sessionType = SessionType.SESSION_TYPE_SINGLE;
        }
-       print(readAck);
+       //print(readAck);
        requestForPbMsg(readAck, MessageCmdID.CID_MSG_READ_ACK.value);
     }
 
