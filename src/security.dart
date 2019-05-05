@@ -24,14 +24,16 @@ class TTPKCSPadding extends BasePadding {
     // nothing to do
   }
 
+
+
   int addPadding(Uint8List data, int offset) {
-    var code = (data.length - offset);
-    while (offset < data.length - 1) {
-      data[offset] = 0;
-      offset++;
+    
+    if(offset > 0){
+        data[data.length - 1] = offset
+        return data.length - offset
     }
-    data[offset] = code;
-    return code;
+
+    return offset;
   }
 
   //解密是 返回被padding的字节个数
@@ -45,8 +47,11 @@ class TTPKCSPadding extends BasePadding {
         result ++;
         index++;
       }
+      data[data.length - 1] = 0;
+      //result = data.length - result;
+    }else if(count < data.length) {
+       return data.length - count;
     }
-
     return result;
   }
 
@@ -89,14 +94,25 @@ class TTSecurity {
     }
 
 
+
     String encryptText(String message) {
-        return base64.encode(encryptionCipher.process(utf8.encode(message)));
+
+        var data = utf8.encode(message);
+        var mod = data.length % 16;
+        var paddingdata = new Uint8List(data.length + 16 - mod)..setAll(0,data);
+        paddingdata[paddingdata.length -1] = data.length;
+            //print(paddingdata);
+        data = paddingdata;
+        var out = encryptionCipher.process(data);
+        return base64.encode(out);
     }
     
 
     //after convert Uint8List to base64 string then use decryptText
     String decryptText(String message) {
-        return utf8.decode(decryptionCipher.process(base64.decode(message)));
+        var data = decryptionCipher.process(base64.decode(message));
+        //print(data);
+        return utf8.decode(data);
     }
 }
 

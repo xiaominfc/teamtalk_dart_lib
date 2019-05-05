@@ -6,6 +6,7 @@
 //
 import 'dart:convert';
 import "dart:io";
+import "dart:async";
 import 'package:protobuf/protobuf.dart';
 import "../pb/IM.BaseDefine.pb.dart";
 import "../pb/IM.Message.pb.dart";
@@ -84,17 +85,21 @@ class IMClient extends IMBaseClient {
 
   doLogin(){
     print('do login');
+    var completer = new Completer<bool>();
     imLoginService.login(_userName, _passWord).then((result){
       //print(result);
       if(result.resultCode == ResultType.REFUSE_REASON_NONE) {
         print(result.resultString);
         _userinfo = result.userInfo;
         print(_userinfo);
+        completer.complete(true);
       }else {
         print(result.resultString + ":" + result.resultCode);
+        completer.complete(false);
       }
         //print(_userinfo);
     });
+    return completer.future;
   
   }
 
@@ -119,6 +124,16 @@ class IMClient extends IMBaseClient {
      data.msgData = utf8.encode(security.encryptText(msg));
      data.msgType = MsgType.MSG_TYPE_SINGLE_TEXT;
      _sendMsg(data);
+  }
+   
+
+  // 发送 文本消息 群聊 
+  sendGroupTextMsg(String msg, int groupId) {
+    IMMsgData data = IMMsgData.create();
+    data.toSessionId = groupId;
+    data.msgData = utf8.encode(security.encryptText(msg));
+    data.msgType = MsgType.MSG_TYPE_GROUP_TEXT;
+    _sendMsg(data);
   }
 
   sureReadMsg(IMMsgData data){

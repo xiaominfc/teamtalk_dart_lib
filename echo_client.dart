@@ -10,6 +10,12 @@ import 'src/security.dart';
 import 'src/client.dart';
 
 
+
+test_send_group_msg(IMClient imClient){
+    imClient.sendGroupTextMsg("测试发送群消息",4);
+}
+
+
 main() {
   TTSecurity security = TTSecurity.DefaultSecurity();
   HttpClient client = new HttpClient();
@@ -24,12 +30,19 @@ main() {
       RawSocket.connect(server_info['priorIP'], int.parse(server_info['port']))
           .then((socket) {
         imClient.connected(socket);
-        imClient.doLogin();
+        imClient.doLogin().then((result){
+            if(result) {
+                print("login ok!");
+                test_send_group_msg(imClient);
+            }else {
+                print("login failed!");
+            }
+        });
         imClient.registerNewMsgHandler((data){
             var msg = security.decryptText(new String.fromCharCodes(data.msgData));
             print("handle new msg:" + msg);
-            imClient.sureReadMsg(data);
-            imClient.sendTextMsg("echo:" + msg , data.fromUserId);
+            //imClient.sureReadMsg(data);
+            //imClient.sendTextMsg("echo:" + msg , data.fromUserId);
         });
 
       });
