@@ -8,7 +8,7 @@ import "dart:io";
 import 'dart:convert';
 import 'src/security.dart';
 import 'src/client.dart';
-
+import './pb/IM.BaseDefine.pb.dart';
 
 
 test_send_group_msg(IMClient imClient){
@@ -40,10 +40,15 @@ main() {
         });
         imClient.registerNewMsgHandler((data){
             var msg = security.decryptText(new String.fromCharCodes(data.msgData));
-            print("handle new msg:" + msg);
-            print(data);
-            //imClient.sureReadMsg(data);
-            //imClient.sendTextMsg("echo:" + msg , data.fromUserId);
+            imClient.sureReadMsg(data);
+            print("handle  msg:" + msg);
+            if(data.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
+                print("handle group chat msg:" + msg);         
+            }else {
+                print("handle single chat msg:" + msg);
+                imClient.sendTextMsg("echo:" + msg , data.fromUserId);
+            }
+
         });
 
       });
