@@ -10,6 +10,7 @@
 //base class
 
 import "dart:typed_data";
+import "dart:async";
 import 'package:protobuf/protobuf.dart';
 
 // 序列号生成器 自增生成
@@ -122,6 +123,14 @@ abstract class IMBaseService {
   }
 
   int serviceId();
+
+
+  Future fetchApi(GeneratedMessage message, int commandId,Completer completer) {
+      requestForPbMsg(message, commandId,((result){
+        completer.complete(result);
+      }));
+      return completer.future;
+  }
 
   void requestForPbMsg(GeneratedMessage message, int commandId,
       [Function func]) {

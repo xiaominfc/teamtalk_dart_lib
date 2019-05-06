@@ -11,10 +11,22 @@ import 'src/client.dart';
 import './pb/IM.BaseDefine.pb.dart';
 
 
+
+test(IMClient imClient){
+  test_send_group_msg(imClient);
+  test_load_history_msgs(imClient);
+}
+
+
 test_send_group_msg(IMClient imClient){
     imClient.sendGroupTextMsg("测试发送群消息",4);
 }
 
+test_load_history_msgs(IMClient imClient) {
+  imClient.loadSingleChatMsgs(2).then((result){
+    print(result);
+  });
+}
 
 main() {
   TTSecurity security = TTSecurity.DefaultSecurity();
@@ -33,7 +45,7 @@ main() {
         imClient.doLogin().then((result){
             if(result) {
                 print("login ok!");
-                test_send_group_msg(imClient);
+                test(imClient);
             }else {
                 print("login failed!");
             }

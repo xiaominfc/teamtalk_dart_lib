@@ -39,24 +39,16 @@ class IMHeartService extends IMBaseService {
   }
 }
 
-
-
 class IMLoginService extends IMBaseService {
-  // IMLoginService(this.client);
   IMLoginService(IMBaseClient client) : super(client);
-  Future login(String userName, String password) async{
+  Future login(String userName, String password) async {
     IMLoginReq loginReq = IMLoginReq.create();
     loginReq.userName = userName;
     loginReq.password = Utils.convertMd5(password);
     loginReq.onlineStatus = UserStatType.USER_STATUS_ONLINE;
     loginReq.clientType = ClientType.CLIENT_TYPE_ANDROID;
     loginReq.clientVersion = '1.0';
-    var completer = new Completer<IMLoginRes>();
-    requestForPbMsg(loginReq, LoginCmdID.CID_LOGIN_REQ_USERLOGIN.value,
-        (res) {
-      completer.complete(res);
-    });
-    return completer.future;
+    return fetchApi(loginReq, LoginCmdID.CID_LOGIN_REQ_USERLOGIN.value,new Completer<IMLoginRes>());
   }
 
   unPackPdu(ImPdu pdu) {
@@ -66,63 +58,75 @@ class IMLoginService extends IMBaseService {
     return null;
   }
 
-
   int serviceId() {
     return ServiceID.SID_LOGIN.value;
   }
 }
 
-
 class IMMessageService extends IMBaseService {
+  TTSecurity security = TTSecurity.DefaultSecurity();
+  IMMessageService(IMBaseClient client) : super(client);
 
-   TTSecurity security = TTSecurity.DefaultSecurity();
-   IMMessageService(IMBaseClient client):super(client);
+  List<Function> newMessageListeners = new List<Function>();
 
-   List<Function> newMessageListeners = new List<Function>();
+  registerListener(Function func) {
+    newMessageListeners.add(func);
+  }
 
-   registerListener(Function func){
-       newMessageListeners.add(func);
-   }
-
-
-   unPackPdu(ImPdu pdu) {
-       if(MessageCmdID.CID_MSG_DATA.value == pdu.commandId) {
-          IMMsgData data = IMMsgData.fromBuffer(pdu.buffer.sublist(16));
-          for(Function func in newMessageListeners) {
-             func(data);
-          }
-          return null;
-       }else if(MessageCmdID.CID_MSG_DATA_ACK.value == pdu.commandId) {
-          IMMsgDataAck dataAck = IMMsgDataAck.fromBuffer(pdu.buffer.sublist(16));
-          return dataAck;
-       }
-   }
-
-    Future sendChatMessage(IMMsgData data) {
-      var completer = new Completer<IMMsgDataAck>();
-       requestForPbMsg(data,MessageCmdID.CID_MSG_DATA.value,(dataAck){
-          //print(dataAck);
-          completer.complete(dataAck);
-       });
-       return completer.future;
+  unPackPdu(ImPdu pdu) {
+    if (MessageCmdID.CID_MSG_DATA.value == pdu.commandId) {
+      IMMsgData data = IMMsgData.fromBuffer(pdu.buffer.sublist(16));
+      for (Function func in newMessageListeners) {
+        func(data);
+      }
+      return null;
+    } else if (MessageCmdID.CID_MSG_DATA_ACK.value == pdu.commandId) {
+      IMMsgDataAck dataAck = IMMsgDataAck.fromBuffer(pdu.buffer.sublist(16));
+      return dataAck;
+    } else if(MessageCmdID.CID_MSG_LIST_RESPONSE.value == pdu.commandId) {
+       return IMGetMsgListRsp.fromBuffer(pdu.buffer.sublist(16));
     }
+  }
 
-    void sureReadMessage(IMMsgData data) {
-       IMMsgDataReadAck readAck = IMMsgDataReadAck.create();
-       readAck.msgId = data.msgId;
-       readAck.userId = data.toSessionId;
-       readAck.sessionId = data.fromUserId;
-       readAck.sessionType = SessionType.SESSION_TYPE_GROUP;
-       if(data.msgType == MsgType.MSG_TYPE_SINGLE_TEXT||  data.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
-        readAck.sessionType = SessionType.SESSION_TYPE_SINGLE;
-       }
-       //print(readAck);
-       requestForPbMsg(readAck, MessageCmdID.CID_MSG_READ_ACK.value);
+  Future sendChatMessage(IMMsgData data) {
+    return fetchApi(data, MessageCmdID.CID_MSG_DATA.value, new Completer<IMMsgDataAck>());
+  }
+
+
+  //获取历史消息
+  Future _getMsgList(int sessionId, int msgIdBegin, int count, SessionType sessionType) {
+    IMGetMsgListReq req = IMGetMsgListReq.create();
+    req.userId = client.userID();
+    req.sessionId = sessionId;
+    req.msgIdBegin = msgIdBegin;
+    req.msgCnt = count;
+    req.sessionType = sessionType;
+    return fetchApi(req, MessageCmdID.CID_MSG_LIST_REQUEST.value, new Completer<IMGetMsgListRsp>());
+  }
+
+  Future getSingleChatMsgList(int sessionId, int msgIdBegin, int count) {
+    return _getMsgList(sessionId, msgIdBegin, count, SessionType.SESSION_TYPE_SINGLE);
+  }
+
+  Future getGroupChatMsgList(int sessionId, int msgIdBegin, int count) {
+    return _getMsgList(sessionId, msgIdBegin, count, SessionType.SESSION_TYPE_GROUP);
+  }
+
+  void sureReadMessage(IMMsgData data) {
+    IMMsgDataReadAck readAck = IMMsgDataReadAck.create();
+    readAck.msgId = data.msgId;
+    readAck.userId = data.toSessionId;
+    readAck.sessionId = data.fromUserId;
+    readAck.sessionType = SessionType.SESSION_TYPE_GROUP;
+    if (data.msgType == MsgType.MSG_TYPE_SINGLE_TEXT ||
+        data.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
+      readAck.sessionType = SessionType.SESSION_TYPE_SINGLE;
     }
+    //print(readAck);
+    requestForPbMsg(readAck, MessageCmdID.CID_MSG_READ_ACK.value);
+  }
 
-   int serviceId() {
-     return ServiceID.SID_MSG.value;
-   }
+  int serviceId() {
+    return ServiceID.SID_MSG.value;
+  }
 }
-
-

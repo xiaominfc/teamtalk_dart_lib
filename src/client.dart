@@ -136,6 +136,11 @@ class IMClient extends IMBaseClient {
     _sendMsg(data);
   }
 
+  //加载历史消息
+  Future loadSingleChatMsgs(int sessionId) {
+    return imMessageService.getSingleChatMsgList(sessionId, 0 , 10);
+  }
+
   sureReadMsg(IMMsgData data){
     imMessageService.sureReadMessage(data);
   }
