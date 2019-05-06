@@ -33,7 +33,7 @@ class TTPKCSPadding extends BasePadding {
 
   //解密是 返回被padding的字节个数
   int padCount(Uint8List data) {
-    print(data);
+   // print(data);
     var count = clip8(data[data.length - 1]);
     var result = 0;
     if (count > data.length || count == 0) {
