@@ -13,6 +13,10 @@ import './pb/IM.BaseDefine.pb.dart';
 
 
 test(IMClient imClient){
+  imClient.requestSessions().then((sessions){
+      print('sessions');
+      print(sessions);
+    });
   test_send_group_msg(imClient);
   test_load_history_msgs(imClient);
 }
@@ -41,7 +45,7 @@ main() {
             }else {
                 print("login failed!");
             }
-        });
+    });
     imClient.registerNewMsgHandler((data){
             var msg = security.decryptText(new String.fromCharCodes(data.msgData));
             imClient.sureReadMsg(data);

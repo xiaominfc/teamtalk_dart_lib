@@ -139,7 +139,6 @@ class IMSessionService extends IMBaseService{
 
   @override
   int serviceId() {
-    
     return ServiceID.SID_BUDDY_LIST.value;
   }
 
@@ -147,7 +146,7 @@ class IMSessionService extends IMBaseService{
     IMRecentContactSessionReq req = IMRecentContactSessionReq.create();
     req.latestUpdateTime = lastTime;
     req.userId = client.userID();
-    return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_ALL_USER_REQUEST.value);
+    return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_RECENT_CONTACT_SESSION_REQUEST.value);
   }
 
   @override
