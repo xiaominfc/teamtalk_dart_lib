@@ -125,7 +125,10 @@ abstract class IMBaseService {
   int serviceId();
 
 
-  Future fetchApi(GeneratedMessage message, int commandId,Completer completer) {
+  Future fetchApi(GeneratedMessage message, int commandId,[Completer completer]) {
+    if(completer == null) {
+      completer = new Completer();
+    }
       requestForPbMsg(message, commandId,((result){
         completer.complete(result);
       }));

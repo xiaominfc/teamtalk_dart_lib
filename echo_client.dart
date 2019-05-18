@@ -24,25 +24,17 @@ test_send_group_msg(IMClient imClient){
 
 test_load_history_msgs(IMClient imClient) {
   imClient.loadSingleChatMsgs(2).then((result){
-    print(result);
+    //print(result);
   });
 }
 
 main() {
   TTSecurity security = TTSecurity.DefaultSecurity();
-  HttpClient client = new HttpClient();
-  IMClient imClient = new IMClient('xiaominfc', '123456');
-  client
-      .getUrl(Uri.parse("http://im.xiaominfc.com:8080/msg_server"))
-      .then((HttpClientRequest request) => request.close())
-      .then((HttpClientResponse response) {
-    response.transform(utf8.decoder).listen((contents) {
-      var server_info = json.decode(contents);
-      print(server_info);
-      RawSocket.connect(server_info['priorIP'], int.parse(server_info['port']))
-          .then((socket) {
-        imClient.connected(socket);
-        imClient.doLogin().then((result){
+  IMClient imClient = new IMClient().init('xiaominfc', '123456',"http://im.xiaominfc.com:8080/msg_server");
+  
+
+  imClient.requesetMsgSever().then((serverInfo){
+    imClient.doLogin(serverInfo['priorIP'], int.parse(serverInfo['port'])).then((result){
             if(result) {
                 print("login ok!");
                 test(imClient);
@@ -50,7 +42,7 @@ main() {
                 print("login failed!");
             }
         });
-        imClient.registerNewMsgHandler((data){
+    imClient.registerNewMsgHandler((data){
             var msg = security.decryptText(new String.fromCharCodes(data.msgData));
             imClient.sureReadMsg(data);
             print("handle  msg:" + msg);
@@ -62,8 +54,8 @@ main() {
             }
 
         });
-
-      });
-    });
   });
+  
+
+ 
 }

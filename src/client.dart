@@ -15,8 +15,6 @@ import './service.dart';
 import './security.dart';
 import './utils.dart';
 
-
-
 // im client
 class IMServiceManager {
   List<IMBaseService> services = new List<IMBaseService>();
@@ -35,7 +33,7 @@ class IMServiceManager {
           var data = socket.read(len);
           var pdu = ImPdu.buildFromBuffer(data);
           if (pdu != null) {
-             handle(pdu);
+            handle(pdu);
           }
         }
       }
@@ -48,28 +46,60 @@ class IMServiceManager {
     print("serviceId:$serviceId   commandId:$commandId");
 
     var service = servicesMap[serviceId];
-    if(service != null) {
+    if (service != null) {
       service.handle(pdu);
     }
   }
 }
 
 class IMClient extends IMBaseClient {
+  static final IMClient _singleton = new IMClient._internal();
+
+  factory IMClient() {
+    return _singleton;
+  }
+
+  static IMClient newInstance() {
+    return new IMClient._internal();
+  }
+
   String _userName;
   String _passWord;
   IMServiceManager manager;
-  IMLoginService imLoginService;
-  IMMessageService imMessageService;
+  IMLoginService _imLoginService;
+  IMMessageService _imMessageService;
+  IMSessionService _imSessionService;
   TTSecurity security = TTSecurity.DefaultSecurity();
   UserInfo _userinfo;
 
+  String _loginServerUrl;
 
-  IMClient(String userName, String passWord) {
+  IMClient._internal();
+
+  IMClient init(String userName, String passWord, String loginServerUrl) {
     _userName = userName;
     _passWord = passWord;
     manager = new IMServiceManager();
-    imLoginService = new IMLoginService(this);
-    imMessageService = new IMMessageService(this);
+    _imLoginService = new IMLoginService(this);
+    _imMessageService = new IMMessageService(this);
+    _imSessionService = new IMSessionService(this);
+    _loginServerUrl = loginServerUrl;
+    return this;
+  }
+
+  requesetMsgSever() {
+    var completer = new Completer();
+    HttpClient client = new HttpClient();
+    client
+        .getUrl(Uri.parse(this._loginServerUrl))
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+      response.transform(utf8.decoder).listen((contents) {
+        var serverInfo = json.decode(contents);
+        completer.complete(serverInfo);
+      });
+    });
+    return completer.future;
   }
 
   RawSocket _socket;
@@ -77,57 +107,71 @@ class IMClient extends IMBaseClient {
   connected(RawSocket socket) {
     _socket = socket;
     manager.register(new IMHeartService(this));
-    manager.register(imLoginService);
-    manager.register(imMessageService);
+    manager.register(_imLoginService);
+    manager.register(_imMessageService);
+    manager.register(_imSessionService);
     manager.initListen(socket);
     //doLogin();
   }
 
-  doLogin(){
-    print('do login');
+  reLogin() {
+    print('do relogin');
     var completer = new Completer<bool>();
-    imLoginService.login(_userName, _passWord).then((result){
-      //print(result);
-      if(result.resultCode == ResultType.REFUSE_REASON_NONE) {
-        print(result.resultString);
-        _userinfo = result.userInfo;
-        print(_userinfo);
-        completer.complete(true);
-      }else {
-        print(result.resultString + ":" + result.resultCode);
-        completer.complete(false);
-      }
-        //print(_userinfo);
+    requesetMsgSever().then((serverInfo) {
+      doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
+          .then((result) {
+        completer.complete(result);
+      });
     });
     return completer.future;
-  
+  }
+
+  Future<bool> doLogin(String ip, int port) async {
+    print('do login');
+    var completer = new Completer<bool>();
+    RawSocket.connect(ip, port).then((socket) {
+      connected(socket);
+      _imLoginService.login(_userName, _passWord).then((result) {
+        //print(result);
+        if (result.resultCode == ResultType.REFUSE_REASON_NONE) {
+          print(result.resultString);
+          _userinfo = result.userInfo;
+          print(_userinfo);
+          completer.complete(true);
+        } else {
+          print(result.resultString + ":" + result.resultCode);
+          completer.complete(false);
+        }
+        //print(_userinfo);
+      });
+    });
+    return completer.future;
   }
 
   registerNewMsgHandler(Function func) {
-    imMessageService.registerListener(func);
+    _imMessageService.registerListener(func);
   }
 
 
   _sendMsg(IMMsgData data) {
-     data.fromUserId = userID();
-     data.msgId = 0;
-     data.createTime = Utils.unixTime();
-     imMessageService.sendChatMessage(data).then((dataAck){
-       print("send ok");
-     });
+    data.fromUserId = userID();
+    data.msgId = 0;
+    data.createTime = Utils.unixTime();
+    _imMessageService.sendChatMessage(data).then((dataAck) {
+      print("send ok");
+    });
   }
 
   // 发送 一条文本消息 单聊
-  sendTextMsg(String msg, int toID){
-     IMMsgData data = IMMsgData.create();
-     data.toSessionId = toID;
-     data.msgData = utf8.encode(security.encryptText(msg));
-     data.msgType = MsgType.MSG_TYPE_SINGLE_TEXT;
-     _sendMsg(data);
+  sendTextMsg(String msg, int toID) {
+    IMMsgData data = IMMsgData.create();
+    data.toSessionId = toID;
+    data.msgData = utf8.encode(security.encryptText(msg));
+    data.msgType = MsgType.MSG_TYPE_SINGLE_TEXT;
+    _sendMsg(data);
   }
-   
 
-  // 发送 文本消息 群聊 
+  // 发送 文本消息 群聊
   sendGroupTextMsg(String msg, int groupId) {
     IMMsgData data = IMMsgData.create();
     data.toSessionId = groupId;
@@ -138,18 +182,21 @@ class IMClient extends IMBaseClient {
 
   //加载历史消息
   Future loadSingleChatMsgs(int sessionId) {
-    return imMessageService.getSingleChatMsgList(sessionId, 0 , 10);
+    return _imMessageService.getSingleChatMsgList(sessionId, 0, 10);
   }
 
-  sureReadMsg(IMMsgData data){
-    imMessageService.sureReadMessage(data);
+  sureReadMsg(IMMsgData data) {
+    _imMessageService.sureReadMessage(data);
   }
 
 
+  requestSessions(){
+    return _imSessionService.requesRecentSessions(0);
+  }
 
   int userID() {
-    if(_userinfo != null){
-        return _userinfo.userId;
+    if (_userinfo != null) {
+      return _userinfo.userId;
     }
     return 0;
   }
@@ -164,9 +211,6 @@ class IMClient extends IMBaseClient {
     var pduData = ImPdu.build(serviceId, commandId, message).makeBuffer();
     int result = _socket.write(pduData);
     if (result > 0) {
-    } else {
-      
-    }
+    } else {}
   }
 }
-

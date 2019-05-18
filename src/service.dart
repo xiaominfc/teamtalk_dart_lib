@@ -9,6 +9,7 @@ import "../pb/IM.BaseDefine.pb.dart";
 import "../pb/IM.Login.pb.dart";
 import "../pb/IM.Other.pb.dart";
 import "../pb/IM.Message.pb.dart";
+import "../pb/IM.Buddy.pb.dart";
 
 import "dart:async";
 import './utils.dart';
@@ -48,7 +49,7 @@ class IMLoginService extends IMBaseService {
     loginReq.onlineStatus = UserStatType.USER_STATUS_ONLINE;
     loginReq.clientType = ClientType.CLIENT_TYPE_ANDROID;
     loginReq.clientVersion = '1.0';
-    return fetchApi(loginReq, LoginCmdID.CID_LOGIN_REQ_USERLOGIN.value,new Completer<IMLoginRes>());
+    return fetchApi(loginReq, LoginCmdID.CID_LOGIN_REQ_USERLOGIN.value);
   }
 
   unPackPdu(ImPdu pdu) {
@@ -89,7 +90,7 @@ class IMMessageService extends IMBaseService {
   }
 
   Future sendChatMessage(IMMsgData data) {
-    return fetchApi(data, MessageCmdID.CID_MSG_DATA.value, new Completer<IMMsgDataAck>());
+    return fetchApi(data, MessageCmdID.CID_MSG_DATA.value);
   }
 
 
@@ -101,7 +102,7 @@ class IMMessageService extends IMBaseService {
     req.msgIdBegin = msgIdBegin;
     req.msgCnt = count;
     req.sessionType = sessionType;
-    return fetchApi(req, MessageCmdID.CID_MSG_LIST_REQUEST.value, new Completer<IMGetMsgListRsp>());
+    return fetchApi(req, MessageCmdID.CID_MSG_LIST_REQUEST.value);
   }
 
   Future getSingleChatMsgList(int sessionId, int msgIdBegin, int count) {
@@ -129,4 +130,32 @@ class IMMessageService extends IMBaseService {
   int serviceId() {
     return ServiceID.SID_MSG.value;
   }
+}
+
+
+class IMSessionService extends IMBaseService{
+
+  IMSessionService(IMBaseClient client) : super(client);
+
+  @override
+  int serviceId() {
+    
+    return ServiceID.SID_BUDDY_LIST.value;
+  }
+
+  requesRecentSessions(int lastTime){
+    IMRecentContactSessionReq req = IMRecentContactSessionReq.create();
+    req.latestUpdateTime = lastTime;
+    req.userId = client.userID();
+    return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_ALL_USER_REQUEST.value);
+  }
+
+  @override
+  unPackPdu(ImPdu pdu) {
+    if(BuddyListCmdID.CID_BUDDY_LIST_RECENT_CONTACT_SESSION_RESPONSE.value == pdu.commandId) {
+      return IMRecentContactSessionRsp.fromBuffer(pdu.buffer.sublist(16));
+    }
+    return null;
+  }
+
 }
