@@ -13,6 +13,11 @@ import './pb/IM.BaseDefine.pb.dart';
 
 
 test(IMClient imClient){
+  
+  imClient.requestContacts().then((result){
+      print(result);
+  });
+
   imClient.requestSessions().then((sessions){
       print('sessions');
       print(sessions);
@@ -34,9 +39,7 @@ test_load_history_msgs(IMClient imClient) {
 
 main() {
   TTSecurity security = TTSecurity.DefaultSecurity();
-  IMClient imClient = new IMClient().init('xiaominfc', '123456',"http://im.xiaominfc.com:8080/msg_server");
-  
-
+  IMClient imClient = new IMClient().init('xiaominfc', '123456','http://im.xiaominfc.com:8080/msg_server');
   imClient.requesetMsgSever().then((serverInfo){
     imClient.doLogin(serverInfo['priorIP'], int.parse(serverInfo['port'])).then((result){
             if(result) {
@@ -56,10 +59,6 @@ main() {
                 print("handle single chat msg:" + msg);
                 imClient.sendTextMsg("echo:" + msg , data.fromUserId);
             }
-
         });
   });
-  
-
- 
 }

@@ -61,7 +61,7 @@ class ImPdu {
 
   
   _fromBuffer(List<int> data) {
-    buffer = new List<int>.from(data);
+    buffer = new List.from(data,growable: false);
     version = (buffer[4] << 8) + buffer[5];
     flag = (buffer[6] << 8) + buffer[7];
     serviceId = (buffer[8] << 8) + buffer[9];
@@ -84,15 +84,23 @@ class ImPdu {
   }
 
   static ImPdu buildFromBuffer(List<int> data) {
+    if(data.length < 16){
+      print('cache too min:' + data.length.toString());
+      return null;
+    }
+    
     int length = data[0];
     for (int i = 1; i < 4; i++) {
       length = (length << 8) + data[i];
     }
-    if (length == data.length) {
+    
+    if (length <= data.length) {
       var pdu = new ImPdu();
-      pdu._fromBuffer(data);
+      pdu._fromBuffer(data.sublist(0,length));
       pdu.length = length;
       return pdu;
+    }else {
+      print('$length != ' + data.length.toString());
     }
     return null;
   }
@@ -112,20 +120,22 @@ abstract class IMBaseService {
 
   IMBaseService(this.client);
   void handle(ImPdu pdu){
-    var msg = unPackPdu(pdu);
+    var msg = unPackPdu(pdu, pdu.commandId);
     int seq = pdu.seqNumber;
     if (msg != null){
       Function func = funcMap.remove(seq);
       if(func != null){
          func(msg);  
       }
+    }else {
+      print("not for:" + pdu.commandId.toString());
     }
   }
 
   int serviceId();
 
 
-  Future fetchApi(GeneratedMessage message, int commandId,[Completer completer]) {
+  Future fetchApi(GeneratedMessage message, int commandId,{Completer completer}) {
     if(completer == null) {
       completer = new Completer();
     }
@@ -140,11 +150,10 @@ abstract class IMBaseService {
     ImPdu pdu = ImPdu.build(serviceId(), commandId, message);
     int seq = pdu.seqNumber;
     if (func != null) {
-      print("add func for $seq");
       funcMap[seq] = func;
     }
     client.sendPdu(pdu);
   }
 
-  unPackPdu(ImPdu pdu);
+  unPackPdu(ImPdu pdu, int commandId);
 }

@@ -31,7 +31,7 @@ class IMHeartService extends IMBaseService {
     requestForPbMsg(heartBeat, OtherCmdID.CID_OTHER_HEARTBEAT.value);
   }
 
-  unPackPdu(ImPdu pdu) {
+  unPackPdu(ImPdu pdu, int commandId) {
     print('heart beat');
   }
 
@@ -52,8 +52,8 @@ class IMLoginService extends IMBaseService {
     return fetchApi(loginReq, LoginCmdID.CID_LOGIN_REQ_USERLOGIN.value);
   }
 
-  unPackPdu(ImPdu pdu) {
-    if (pdu.commandId == LoginCmdID.CID_LOGIN_RES_USERLOGIN.value) {
+  unPackPdu(ImPdu pdu, int commandId) {
+    if (LoginCmdID.CID_LOGIN_RES_USERLOGIN.value == commandId) {
       return IMLoginRes.fromBuffer(pdu.buffer.sublist(16));
     }
     return null;
@@ -74,17 +74,17 @@ class IMMessageService extends IMBaseService {
     newMessageListeners.add(func);
   }
 
-  unPackPdu(ImPdu pdu) {
-    if (MessageCmdID.CID_MSG_DATA.value == pdu.commandId) {
+  unPackPdu(ImPdu pdu, int commandId) {
+    if (MessageCmdID.CID_MSG_DATA.value == commandId) {
       IMMsgData data = IMMsgData.fromBuffer(pdu.buffer.sublist(16));
       for (Function func in newMessageListeners) {
         func(data);
       }
       return null;
-    } else if (MessageCmdID.CID_MSG_DATA_ACK.value == pdu.commandId) {
+    } else if (MessageCmdID.CID_MSG_DATA_ACK.value == commandId) {
       IMMsgDataAck dataAck = IMMsgDataAck.fromBuffer(pdu.buffer.sublist(16));
       return dataAck;
-    } else if(MessageCmdID.CID_MSG_LIST_RESPONSE.value == pdu.commandId) {
+    } else if(MessageCmdID.CID_MSG_LIST_RESPONSE.value == commandId) {
        return IMGetMsgListRsp.fromBuffer(pdu.buffer.sublist(16));
     }
   }
@@ -149,10 +149,29 @@ class IMSessionService extends IMBaseService{
     return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_RECENT_CONTACT_SESSION_REQUEST.value);
   }
 
+
+  requestContacts(int lastTime) {
+    IMAllUserReq req = IMAllUserReq.create();
+    req.userId = client.userID();
+    req.latestUpdateTime = lastTime;
+    return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_ALL_USER_REQUEST.value);
+  }
+
+  requestContactsByIds(List<int> ids){
+    IMUsersInfoReq req = IMUsersInfoReq.create();
+    req.userIdList.addAll(ids);
+    req.userId = client.userID();
+    return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_USER_INFO_REQUEST.value);
+  }
+
   @override
-  unPackPdu(ImPdu pdu) {
-    if(BuddyListCmdID.CID_BUDDY_LIST_RECENT_CONTACT_SESSION_RESPONSE.value == pdu.commandId) {
+  unPackPdu(ImPdu pdu, int commandId) {
+    if(BuddyListCmdID.CID_BUDDY_LIST_RECENT_CONTACT_SESSION_RESPONSE.value == commandId) {
       return IMRecentContactSessionRsp.fromBuffer(pdu.buffer.sublist(16));
+    } else if(BuddyListCmdID.CID_BUDDY_LIST_ALL_USER_RESPONSE.value  == commandId) {
+      return  IMAllUserRsp.fromBuffer(pdu.buffer.sublist(16));
+    } else if(BuddyListCmdID.CID_BUDDY_LIST_USER_INFO_RESPONSE.value == commandId){
+      return IMUsersInfoRsp.fromBuffer(pdu.buffer.sublist(16));
     }
     return null;
   }

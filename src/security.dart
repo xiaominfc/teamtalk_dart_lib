@@ -101,6 +101,12 @@ class TTSecurity {
   //after convert Uint8List to base64 string then use decryptText
   String decryptText(String message) {
     var data = decryptionCipher.process(base64.decode(message));
-    return utf8.decode(data);
+    
+    try {
+      return utf8.decode(data);  
+    } catch (e) {
+      print(data);
+    }
+    return "";
   }
 }

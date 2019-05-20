@@ -5,6 +5,7 @@
 // Distributed under terms of the MIT license.
 //
 import 'dart:convert';
+import 'dart:ffi';
 import "dart:io";
 import "dart:async";
 import 'package:protobuf/protobuf.dart';
@@ -24,18 +25,33 @@ class IMServiceManager {
     servicesMap[service.serviceId()] = service;
   }
 
+  static const MAXBUFSIZE = 10240;
+  static const READBUFSIZE = 1024;
+
   initListen(RawSocket socket) {
+    List<int> cache = new List();
+    int offset = 0;
+    int start = 0;
     socket.listen((event) {
       print(event);
       if (event == RawSocketEvent.read) {
-        int len = 0;
-        while ((len = socket.available()) > 0) {
-          var data = socket.read(len);
-          var pdu = ImPdu.buildFromBuffer(data);
-          if (pdu != null) {
-            handle(pdu);
+        while (socket.available() > 0) {
+          var data = socket.read(READBUFSIZE);
+          cache.addAll(data);
+          offset = offset + data.length;
+          if(offset > MAXBUFSIZE) {
+              var tmp = cache.sublist(start);
+              cache = new List();
+              cache.addAll(tmp);
+              offset = tmp.length;
           }
         }
+        var pdu = ImPdu.buildFromBuffer(cache.sublist(start));
+          while(pdu != null) {
+            start = start + pdu.length;
+            handle(pdu);
+            pdu = ImPdu.buildFromBuffer(cache.sublist(start));  
+          }
       }
     });
   }
@@ -189,9 +205,14 @@ class IMClient extends IMBaseClient {
     _imMessageService.sureReadMessage(data);
   }
 
-
+  //获取会话
   requestSessions(){
     return _imSessionService.requesRecentSessions(0);
+  }
+
+  //获取联系人
+  requestContacts(){
+    return _imSessionService.requestContacts(0);
   }
 
   int userID() {
