@@ -14,7 +14,7 @@ import './pb/IM.BaseDefine.pb.dart';
 
 test(IMClient imClient){
   
-  imClient.requestContacts().then((result){
+  imClient.requestContacts(0).then((result){
       print(result);
   });
 
