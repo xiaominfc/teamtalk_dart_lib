@@ -5,7 +5,6 @@
 // Distributed under terms of the MIT license.
 //
 import 'dart:convert';
-import 'dart:ffi';
 import "dart:io";
 import "dart:async";
 import 'package:protobuf/protobuf.dart';
@@ -211,8 +210,8 @@ class IMClient extends IMBaseClient {
   }
 
   //获取联系人
-  requestContacts(){
-    return _imSessionService.requestContacts(0);
+  requestContacts(int lastUpdateTime){
+    return _imSessionService.requestContacts(lastUpdateTime);
   }
 
   int userID() {
