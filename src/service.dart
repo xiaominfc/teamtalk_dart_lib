@@ -5,11 +5,13 @@
 // Distributed under terms of the MIT license.
 //
 
+
 import "../pb/IM.BaseDefine.pb.dart";
 import "../pb/IM.Login.pb.dart";
 import "../pb/IM.Other.pb.dart";
 import "../pb/IM.Message.pb.dart";
 import "../pb/IM.Buddy.pb.dart";
+import "../pb/IM.Group.pb.dart";
 
 import "dart:async";
 import './utils.dart';
@@ -105,11 +107,11 @@ class IMMessageService extends IMBaseService {
     return fetchApi(req, MessageCmdID.CID_MSG_LIST_REQUEST.value);
   }
 
-  Future getSingleChatMsgList(int sessionId, int msgIdBegin, int count) {
+  Future getSingleChatMsgList(int sessionId, int msgIdBegin, int count) async{
     return _getMsgList(sessionId, msgIdBegin, count, SessionType.SESSION_TYPE_SINGLE);
   }
 
-  Future getGroupChatMsgList(int sessionId, int msgIdBegin, int count) {
+  Future getGroupChatMsgList(int sessionId, int msgIdBegin, int count) async{
     return _getMsgList(sessionId, msgIdBegin, count, SessionType.SESSION_TYPE_GROUP);
   }
 
@@ -130,6 +132,47 @@ class IMMessageService extends IMBaseService {
   int serviceId() {
     return ServiceID.SID_MSG.value;
   }
+}
+
+
+class IMGroupService extends IMBaseService {
+  IMGroupService(IMBaseClient client) : super(client);
+
+  requestNormalGroups() {
+    IMNormalGroupListReq req = IMNormalGroupListReq.create();
+    req.userId = client.userID();
+    return fetchApi(req, GroupCmdID.CID_GROUP_NORMAL_LIST_REQUEST.value);
+  }
+
+  requestGroupInfo(List ids) {
+    IMGroupInfoListReq req = IMGroupInfoListReq.create();
+    ids.forEach((id){
+      GroupVersionInfo info = GroupVersionInfo();
+      info.groupId = id;
+      info.version = 0;
+      req.groupVersionList.add(info);
+    });
+    req.userId = client.userID();
+    print(req);
+    return fetchApi(req, GroupCmdID.CID_GROUP_INFO_REQUEST.value);
+  }
+
+  @override
+  int serviceId() {
+    return ServiceID.SID_GROUP.value;
+  }
+
+  @override
+  unPackPdu(ImPdu pdu, int commandId) {
+    if(GroupCmdID.CID_GROUP_NORMAL_LIST_RESPONSE.value == commandId) {
+      return IMNormalGroupListRsp.fromBuffer(pdu.buffer.sublist(16));
+    }else if(GroupCmdID.CID_GROUP_INFO_RESPONSE.value == commandId) {
+      return IMGroupInfoListRsp.fromBuffer(pdu.buffer.sublist(16));
+    }
+
+    return null;
+  }
+
 }
 
 

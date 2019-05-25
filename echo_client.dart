@@ -4,8 +4,6 @@
 //
 // Distributed under terms of the MIT license.
 //
-import "dart:io";
-import 'dart:convert';
 import 'src/security.dart';
 import 'src/client.dart';
 import './pb/IM.BaseDefine.pb.dart';
@@ -13,26 +11,36 @@ import './pb/IM.BaseDefine.pb.dart';
 
 
 test(IMClient imClient){
-  
+  imClient.requestAllGroupVersion().then((result){
+    print(result);
+
+  });
+  imClient.requestGroupInfoByIds([4]).then((result){
+    print(result);
+  });
   imClient.requestContacts(0).then((result){
       print(result);
   });
 
-  imClient.requestSessions().then((sessions){
+  imClient.requestSessions(0).then((sessions){
       print('sessions');
       print(sessions);
     });
+
+  
   test_send_group_msg(imClient);
   test_load_history_msgs(imClient);
 }
 
 
 test_send_group_msg(IMClient imClient){
-    imClient.sendGroupTextMsg("测试发送群消息",4);
+    imClient.sendGroupTextMsg("测试发送群消息",4).then((result){
+      
+    });
 }
 
 test_load_history_msgs(IMClient imClient) {
-  imClient.loadSingleChatMsgs(2).then((result){
+  imClient.loadSingleChatMsgs(2,0,10).then((result){
     //print(result);
   });
 }

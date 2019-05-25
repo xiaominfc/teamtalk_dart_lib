@@ -38,19 +38,24 @@ class IMServiceManager {
           var data = socket.read(READBUFSIZE);
           cache.addAll(data);
           offset = offset + data.length;
-          if(offset > MAXBUFSIZE) {
-              var tmp = cache.sublist(start);
-              cache = new List();
-              cache.addAll(tmp);
-              offset = tmp.length;
-          }
+          // if(offset > MAXBUFSIZE) {
+          //     var tmp = cache.sublist(start);
+          //     cache = new List();
+          //     cache.addAll(tmp);
+          //     offset = tmp.length;
+          // }
         }
         var pdu = ImPdu.buildFromBuffer(cache.sublist(start));
-          while(pdu != null) {
+        while(pdu != null) {
             start = start + pdu.length;
             handle(pdu);
             pdu = ImPdu.buildFromBuffer(cache.sublist(start));  
-          }
+        }
+        if(start == offset) {
+          cache.clear();
+          start = 0;
+          offset = 0;
+        }
       }
     });
   }
@@ -84,6 +89,7 @@ class IMClient extends IMBaseClient {
   IMLoginService _imLoginService;
   IMMessageService _imMessageService;
   IMSessionService _imSessionService;
+  IMGroupService _imGroupService;
   TTSecurity security = TTSecurity.DefaultSecurity();
   UserInfo _userinfo;
 
@@ -94,17 +100,18 @@ class IMClient extends IMBaseClient {
   IMClient init(String userName, String passWord, String loginServerUrl) {
     _userName = userName;
     _passWord = passWord;
-    manager = new IMServiceManager();
-    _imLoginService = new IMLoginService(this);
-    _imMessageService = new IMMessageService(this);
-    _imSessionService = new IMSessionService(this);
+    manager = IMServiceManager();
+    _imLoginService = IMLoginService(this);
+    _imMessageService = IMMessageService(this);
+    _imSessionService = IMSessionService(this);
+    _imGroupService = IMGroupService(this);
     _loginServerUrl = loginServerUrl;
     return this;
   }
 
   requesetMsgSever() {
-    var completer = new Completer();
-    HttpClient client = new HttpClient();
+    var completer = Completer();
+    HttpClient client = HttpClient();
     client
         .getUrl(Uri.parse(this._loginServerUrl))
         .then((HttpClientRequest request) => request.close())
@@ -121,10 +128,11 @@ class IMClient extends IMBaseClient {
 
   connected(RawSocket socket) {
     _socket = socket;
-    manager.register(new IMHeartService(this));
+    manager.register(IMHeartService(this));
     manager.register(_imLoginService);
     manager.register(_imMessageService);
     manager.register(_imSessionService);
+    manager.register(_imGroupService);
     manager.initListen(socket);
     //doLogin();
   }
@@ -168,45 +176,59 @@ class IMClient extends IMBaseClient {
   }
 
 
-  _sendMsg(IMMsgData data) {
+  _sendMsg(IMMsgData data) async{
     data.fromUserId = userID();
     data.msgId = 0;
     data.createTime = Utils.unixTime();
-    _imMessageService.sendChatMessage(data).then((dataAck) {
-      print("send ok");
-    });
+    return _imMessageService.sendChatMessage(data);
+    // _imMessageService.sendChatMessage(data).then((dataAck) {
+    //   print("send ok");
+    // });
   }
 
   // 发送 一条文本消息 单聊
-  sendTextMsg(String msg, int toID) {
+  sendTextMsg(String msg, int toID)  async{
     IMMsgData data = IMMsgData.create();
     data.toSessionId = toID;
     data.msgData = utf8.encode(security.encryptText(msg));
     data.msgType = MsgType.MSG_TYPE_SINGLE_TEXT;
-    _sendMsg(data);
+    return _sendMsg(data);
   }
 
   // 发送 文本消息 群聊
-  sendGroupTextMsg(String msg, int groupId) {
+  sendGroupTextMsg(String msg, int groupId)  async{
     IMMsgData data = IMMsgData.create();
     data.toSessionId = groupId;
     data.msgData = utf8.encode(security.encryptText(msg));
     data.msgType = MsgType.MSG_TYPE_GROUP_TEXT;
-    _sendMsg(data);
+    return _sendMsg(data);
   }
 
   //加载历史消息
-  Future loadSingleChatMsgs(int sessionId) {
-    return _imMessageService.getSingleChatMsgList(sessionId, 0, 10);
+  loadSingleChatMsgs(int sessionId,int msgbeginId,int cnt) {
+    return _imMessageService.getSingleChatMsgList(sessionId, msgbeginId, cnt);
+  }
+
+  //加载历史消息
+  loadGroupChatMsgs(int sessionId,int msgbeginId,int cnt) {
+    return _imMessageService.getGroupChatMsgList(sessionId, msgbeginId, cnt);
   }
 
   sureReadMsg(IMMsgData data) {
     _imMessageService.sureReadMessage(data);
   }
 
+  requestAllGroupVersion(){
+    return _imGroupService.requestNormalGroups();
+  }
+
+  requestGroupInfoByIds(List<int> ids) {
+    return _imGroupService.requestGroupInfo(ids);
+  }
+
   //获取会话
-  requestSessions(){
-    return _imSessionService.requesRecentSessions(0);
+  requestSessions(int lastUpdateTime){
+    return _imSessionService.requesRecentSessions(lastUpdateTime);
   }
 
   //获取联系人
