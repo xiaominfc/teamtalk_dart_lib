@@ -176,6 +176,12 @@ class IMClient extends IMBaseClient {
   }
 
 
+  //请求未读消息数
+  requestUnReadMsgCnt() async {
+    return _imMessageService.requestUnReadMsgCnt();
+  }
+
+
   _sendMsg(IMMsgData data) async{
     data.fromUserId = userID();
     data.msgId = 0;
@@ -214,14 +220,18 @@ class IMClient extends IMBaseClient {
     return _imMessageService.getGroupChatMsgList(sessionId, msgbeginId, cnt);
   }
 
+
   sureReadMsg(IMMsgData data) {
     _imMessageService.sureReadMessage(data);
   }
+  
 
+  //获取所有群组的版本信息
   requestAllGroupVersion(){
     return _imGroupService.requestNormalGroups();
   }
 
+  //通过群id获取所有群组详情
   requestGroupInfoByIds(List<int> ids) {
     return _imGroupService.requestGroupInfo(ids);
   }

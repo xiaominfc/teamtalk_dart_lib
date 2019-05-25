@@ -88,6 +88,8 @@ class IMMessageService extends IMBaseService {
       return dataAck;
     } else if(MessageCmdID.CID_MSG_LIST_RESPONSE.value == commandId) {
        return IMGetMsgListRsp.fromBuffer(pdu.buffer.sublist(16));
+    } else if(MessageCmdID.CID_MSG_UNREAD_CNT_RESPONSE.value == commandId) {
+      return IMUnreadMsgCntRsp.fromBuffer(pdu.buffer.sublist(16));
     }
   }
 
@@ -113,6 +115,12 @@ class IMMessageService extends IMBaseService {
 
   Future getGroupChatMsgList(int sessionId, int msgIdBegin, int count) async{
     return _getMsgList(sessionId, msgIdBegin, count, SessionType.SESSION_TYPE_GROUP);
+  }
+
+  Future requestUnReadMsgCnt(){
+    IMUnreadMsgCntReq req = IMUnreadMsgCntReq.create();
+    req.userId = client.userID();
+    return fetchApi(req, MessageCmdID.CID_MSG_UNREAD_CNT_REQUEST.value);
   }
 
   void sureReadMessage(IMMsgData data) {
