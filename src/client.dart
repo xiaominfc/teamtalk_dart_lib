@@ -27,7 +27,7 @@ class IMServiceManager {
   static const MAXBUFSIZE = 10240;
   static const READBUFSIZE = 1024;
 
-  initListen(RawSocket socket) {
+  initListen(RawSocket socket,[Function closeCb]) {
     List<int> cache = new List();
     int offset = 0;
     int start = 0;
@@ -56,6 +56,11 @@ class IMServiceManager {
           start = 0;
           offset = 0;
         }
+      }else if(event == RawSocketEvent.closed) {
+        if(closeCb != null) {
+          closeCb();
+        }
+        return;
       }
     });
   }
@@ -133,7 +138,9 @@ class IMClient extends IMBaseClient {
     manager.register(_imMessageService);
     manager.register(_imSessionService);
     manager.register(_imGroupService);
-    manager.initListen(socket);
+    manager.initListen(socket,(){
+      reLogin();
+    });
     //doLogin();
   }
 
@@ -167,6 +174,8 @@ class IMClient extends IMBaseClient {
         }
         //print(_userinfo);
       });
+    }).then((error){
+      print('connect error');
     });
     return completer.future;
   }
