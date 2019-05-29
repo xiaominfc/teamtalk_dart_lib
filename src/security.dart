@@ -24,6 +24,7 @@ class TTPKCSPadding extends BasePadding {
   void init([CipherParameters params]) {
     // nothing to do
   }
+  
 
   int addPadding(Uint8List data, int offset) {
     data[data.length - 1] = data[offset - 1]; // 末位标记长度
@@ -31,17 +32,25 @@ class TTPKCSPadding extends BasePadding {
     return data.length - offset + 1; //真实的padding
   }
 
-  //解密是 返回被padding的字节个数
+  //解密是 返回被padding的字节个数 总觉得有点问题
   int padCount(Uint8List data) {
+
     var count = clip8(data[data.length - 1]);
     var result = 0;
     if (count > data.length || count == 0) {
       result = 1;
-      while (data[data.length - result - 1] == 0) {
+      int index = data.length - result - 1;
+      while (index >= 0 && data[index] == 0) {
         result++;
+        index = data.length - result - 1;
+      }
+      if(result == 1 && count % 16 ==0) {
+        return 0;
       }
     } else if (count < data.length) {
       return data.length - count;
+    } else {
+      return count;
     }
     return result;
   }
@@ -82,17 +91,10 @@ class TTSecurity {
   String encryptText(String message) {
     var data = utf8.encode(message);
     var mod = data.length % 16;
-    var append = 1;
-    if (16 - mod == 1) {
-      append = 2;
-    }
+    var  append = 16 - mod + 1;
     var paddingdata = new Uint8List(data.length + append)..setAll(0, data);
     paddingdata[paddingdata.length - 1] = data.length;
-    if (append == 2) {
-      paddingdata[paddingdata.length - 2] = 0;
-    }
     data = paddingdata;
-
     var out = encryptionCipher.process(data);
     return base64.encode(out);
   }
@@ -101,11 +103,8 @@ class TTSecurity {
   String decryptText(String message) {
     List data = decryptionCipher.process(base64.decode(message));
     try {
-      return utf8.decode(data);  
-    } catch (e) {
-      print(e);
-      print(data);
-    }
+      return utf8.decode(data);
+    } catch (e) {}
     return "";
   }
 }
