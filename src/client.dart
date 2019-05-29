@@ -80,10 +80,13 @@ class IMServiceManager {
 class IMClient extends IMBaseClient {
   static final IMClient _singleton = new IMClient._internal();
 
+
+  //默认构造函数保持单例
   factory IMClient() {
     return _singleton;
   }
 
+  //类方法允许新实例 为了特殊需求
   static IMClient newInstance() {
     return new IMClient._internal();
   }
@@ -97,8 +100,9 @@ class IMClient extends IMBaseClient {
   IMGroupService _imGroupService;
   TTSecurity security = TTSecurity.DefaultSecurity();
   UserInfo _userinfo;
-
   String _loginServerUrl;
+  RawSocket _socket;
+
 
   IMClient._internal();
 
@@ -114,6 +118,7 @@ class IMClient extends IMBaseClient {
     return this;
   }
 
+  //获取msg_server
   requesetMsgSever() {
     var completer = Completer();
     HttpClient client = HttpClient();
@@ -129,9 +134,9 @@ class IMClient extends IMBaseClient {
     return completer.future;
   }
 
-  RawSocket _socket;
+  
 
-  connected(RawSocket socket) {
+  _connected(RawSocket socket) {
     _socket = socket;
     manager.register(IMHeartService(this));
     manager.register(_imLoginService);
@@ -156,11 +161,12 @@ class IMClient extends IMBaseClient {
     return completer.future;
   }
 
+  //登录
   Future<bool> doLogin(String ip, int port) async {
     print('do login');
     var completer = new Completer<bool>();
     RawSocket.connect(ip, port).then((socket) {
-      connected(socket);
+      _connected(socket);
       _imLoginService.login(_userName, _passWord).then((result) {
         //print(result);
         if (result.resultCode == ResultType.REFUSE_REASON_NONE) {
@@ -180,6 +186,7 @@ class IMClient extends IMBaseClient {
     return completer.future;
   }
 
+  //注册新消息回调函数
   registerNewMsgHandler(Function func) {
     _imMessageService.registerListener(func);
   }
@@ -229,7 +236,7 @@ class IMClient extends IMBaseClient {
     return _imMessageService.getGroupChatMsgList(sessionId, msgbeginId, cnt);
   }
 
-
+  //确认读过该消息
   sureReadMsg(IMMsgData data) {
     _imMessageService.sureReadMessage(data);
   }
@@ -255,6 +262,7 @@ class IMClient extends IMBaseClient {
     return _imSessionService.requestContacts(lastUpdateTime);
   }
 
+  //用户ID
   int userID() {
     if (_userinfo != null) {
       return _userinfo.userId;
