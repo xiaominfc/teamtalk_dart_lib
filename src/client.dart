@@ -130,6 +130,10 @@ class IMClient extends IMBaseClient {
         var serverInfo = json.decode(contents);
         completer.complete(serverInfo);
       });
+    }).catchError((e){
+      if(e!=null) {
+        completer.complete(null);
+      }
     });
     return completer.future;
   }
