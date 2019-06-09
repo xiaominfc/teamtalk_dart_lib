@@ -157,3 +157,4 @@ abstract class IMBaseService {
 
   unPackPdu(ImPdu pdu, int commandId);
 }
+

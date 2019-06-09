@@ -46,9 +46,10 @@ test_load_history_msgs(IMClient imClient) {
 }
 
 main() {
+  var server_url = "http://ngrok.haitou.cc:43880/msg_server";
   TTSecurity security = TTSecurity.DefaultSecurity();
   //print(security.decryptText('IvQMKe8arYYCZaGJe3c3hVNuYCc5/XPgGxa3GAAjh6zI1DcbHjSMHEkoO0xiqPwHQsaGdXAbAz40WnyMGQayQQ=='));
-  IMClient imClient = new IMClient().init('xiaominfc', '123456','http://im.xiaominfc.com:8080/msg_server');
+  IMClient imClient = new IMClient().init('xiaominfc', '123456',server_url);
   imClient.requesetMsgSever().then((serverInfo){
     imClient.doLogin(serverInfo['priorIP'], int.parse(serverInfo['port'])).then((result){
             if(result) {

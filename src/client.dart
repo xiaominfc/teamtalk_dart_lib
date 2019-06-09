@@ -77,6 +77,16 @@ class IMServiceManager {
   }
 }
 
+
+
+class LoginResult{
+  bool result;
+  var data;
+  LoginResult(this.result,this.data);
+}
+
+enum LoginState {INIT,LOGIN,LOGOUT}
+
 class IMClient extends IMBaseClient {
   static final IMClient _singleton = new IMClient._internal();
 
@@ -102,6 +112,7 @@ class IMClient extends IMBaseClient {
   UserInfo _userinfo;
   String _loginServerUrl;
   RawSocket _socket;
+  LoginState _loginState;
 
 
   IMClient._internal();
@@ -115,6 +126,7 @@ class IMClient extends IMBaseClient {
     _imSessionService = IMSessionService(this);
     _imGroupService = IMGroupService(this);
     _loginServerUrl = loginServerUrl;
+    _loginState = LoginState.INIT;
     return this;
   }
 
@@ -148,14 +160,16 @@ class IMClient extends IMBaseClient {
     manager.register(_imSessionService);
     manager.register(_imGroupService);
     manager.initListen(socket,(){
-      reLogin();
+      if(_loginState != LoginState.LOGOUT) {
+        reLogin();
+      }
     });
     //doLogin();
   }
 
   reLogin() {
     print('do relogin');
-    var completer = new Completer<bool>();
+    var completer = new Completer();
     requesetMsgSever().then((serverInfo) {
       doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
           .then((result) {
@@ -166,28 +180,32 @@ class IMClient extends IMBaseClient {
   }
 
   //登录
-  Future<bool> doLogin(String ip, int port) async {
+  Future doLogin(String ip, int port) async {
     print('do login');
-    var completer = new Completer<bool>();
+    var completer = new Completer();
     RawSocket.connect(ip, port).then((socket) {
       _connected(socket);
       _imLoginService.login(_userName, _passWord).then((result) {
         //print(result);
         if (result.resultCode == ResultType.REFUSE_REASON_NONE) {
+          _loginState = LoginState.LOGIN;
           print(result.resultString);
           _userinfo = result.userInfo;
-          print(_userinfo);
-          completer.complete(true);
+          //print(_userinfo);
+          completer.complete(LoginResult(true, _userinfo));
         } else {
-          print(result.resultString + ":" + result.resultCode);
-          completer.complete(false);
+          //print(result.resultString + ":" + result.resultCode);
+          completer.complete(LoginResult(false,""));
         }
         //print(_userinfo);
       });
-    }).then((error){
-      print('connect error');
     });
     return completer.future;
+  }
+
+  loginOut() async {
+    _loginState = LoginState.LOGOUT;
+    return _imLoginService.loginOut();
   }
 
   //注册新消息回调函数
@@ -273,6 +291,11 @@ class IMClient extends IMBaseClient {
     }
     return 0;
   }
+
+  UserInfo loginUserInfo(){
+    return _userinfo;
+  }
+
 
   void sendPdu(ImPdu pdu) {
     var pduData = pdu.makeBuffer();

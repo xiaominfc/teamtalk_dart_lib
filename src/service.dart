@@ -54,9 +54,16 @@ class IMLoginService extends IMBaseService {
     return fetchApi(loginReq, LoginCmdID.CID_LOGIN_REQ_USERLOGIN.value);
   }
 
+  Future loginOut() async {
+    IMLogoutReq req = IMLogoutReq.create();
+    return fetchApi(req, LoginCmdID.CID_LOGIN_REQ_LOGINOUT.value);
+  }
+
   unPackPdu(ImPdu pdu, int commandId) {
     if (LoginCmdID.CID_LOGIN_RES_USERLOGIN.value == commandId) {
       return IMLoginRes.fromBuffer(pdu.buffer.sublist(16));
+    }else if(LoginCmdID.CID_LOGIN_RES_LOGINOUT.value == commandId) {
+      return IMLogoutRsp.fromBuffer(pdu.buffer.sublist(16));
     }
     return null;
   }
@@ -122,6 +129,7 @@ class IMMessageService extends IMBaseService {
     req.userId = client.userID();
     return fetchApi(req, MessageCmdID.CID_MSG_UNREAD_CNT_REQUEST.value);
   }
+
 
   void sureReadMessage(IMMsgData data) {
     IMMsgDataReadAck readAck = IMMsgDataReadAck.create();
