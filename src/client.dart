@@ -106,7 +106,7 @@ class IMClient extends IMBaseClient {
   IMServiceManager manager;
   IMLoginService _imLoginService;
   IMMessageService _imMessageService;
-  IMSessionService _imSessionService;
+  IMBuddyService _imBuddyService;
   IMGroupService _imGroupService;
   TTSecurity security = TTSecurity.DefaultSecurity();
   UserInfo _userinfo;
@@ -123,7 +123,7 @@ class IMClient extends IMBaseClient {
     manager = IMServiceManager();
     _imLoginService = IMLoginService(this);
     _imMessageService = IMMessageService(this);
-    _imSessionService = IMSessionService(this);
+    _imBuddyService = IMBuddyService(this);
     _imGroupService = IMGroupService(this);
     _loginServerUrl = loginServerUrl;
     _loginState = LoginState.INIT;
@@ -157,7 +157,7 @@ class IMClient extends IMBaseClient {
     manager.register(IMHeartService(this));
     manager.register(_imLoginService);
     manager.register(_imMessageService);
-    manager.register(_imSessionService);
+    manager.register(_imBuddyService);
     manager.register(_imGroupService);
     manager.initListen(socket,(){
       if(_loginState != LoginState.LOGOUT) {
@@ -221,7 +221,7 @@ class IMClient extends IMBaseClient {
 
 
   updateSignInfo(signInfo){
-    return _imSessionService.updateSignInfo(signInfo);
+    return _imBuddyService.updateSignInfo(signInfo);
   }
 
 
@@ -281,12 +281,12 @@ class IMClient extends IMBaseClient {
 
   //获取会话
   requestSessions(int lastUpdateTime){
-    return _imSessionService.requesRecentSessions(lastUpdateTime);
+    return _imBuddyService.requesRecentSessions(lastUpdateTime);
   }
 
   //获取联系人
   requestContacts(int lastUpdateTime){
-    return _imSessionService.requestContacts(lastUpdateTime);
+    return _imBuddyService.requestContacts(lastUpdateTime);
   }
 
   //用户ID

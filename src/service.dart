@@ -191,10 +191,9 @@ class IMGroupService extends IMBaseService {
 }
 
 
+class IMBuddyService extends IMBaseService{
 
-class IMSessionService extends IMBaseService{
-
-  IMSessionService(IMBaseClient client) : super(client);
+  IMBuddyService(IMBaseClient client) : super(client);
 
   @override
   int serviceId() {
