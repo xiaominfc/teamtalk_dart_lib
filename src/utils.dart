@@ -20,29 +20,7 @@ class Utils {
       return new DateTime.now().millisecondsSinceEpoch ~/ 1000;
     }
 
-    static int utf8Length(List data){
-      int index = 0;
-      while(index < data.length) {
-        if(data[index] == 0) {
-          break;
-        }
-        if(data[index] & 0XC0 == 0XC0) {
-          index +=2;
-        }else if(data[index] & 0XE0 == 0XE0){
-          index +=3;
-        }else if(data[index] & 0XF0 == 0XF0){
-          index +=4;
-        }else if(data[index] & 0XFC == 0XFC){
-          index +=5;
-        }else if(data[index] & 0XFE == 0XFE){
-          index +=6;
-        }
-        else {
-          index +=1;
-        }
-      }
-      return index;
-    }
+    
 }
 
 
