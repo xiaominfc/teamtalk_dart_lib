@@ -52,7 +52,7 @@ main() {
   IMClient imClient = new IMClient().init('xiaominfc', '123456',server_url);
   imClient.requesetMsgSever().then((serverInfo){
     imClient.doLogin(serverInfo['priorIP'], int.parse(serverInfo['port'])).then((result){
-            if(result) {
+            if(result.result) {
                 print("login ok!");
                 test(imClient);
             }else {
