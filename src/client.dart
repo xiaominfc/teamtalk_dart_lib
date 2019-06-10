@@ -191,7 +191,7 @@ class IMClient extends IMBaseClient {
           _loginState = LoginState.LOGIN;
           print(result.resultString);
           _userinfo = result.userInfo;
-          //print(_userinfo);
+          print(_userinfo);
           completer.complete(LoginResult(true, _userinfo));
         } else {
           //print(result.resultString + ":" + result.resultCode);
@@ -217,6 +217,11 @@ class IMClient extends IMBaseClient {
   //请求未读消息数
   requestUnReadMsgCnt() async {
     return _imMessageService.requestUnReadMsgCnt();
+  }
+
+
+  updateSignInfo(signInfo){
+    return _imSessionService.updateSignInfo(signInfo);
   }
 
 

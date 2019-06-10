@@ -100,13 +100,12 @@ class IMMessageService extends IMBaseService {
     }
   }
 
-  Future sendChatMessage(IMMsgData data) {
+  Future sendChatMessage(IMMsgData data) async{
     return fetchApi(data, MessageCmdID.CID_MSG_DATA.value);
   }
 
-
   //获取历史消息
-  Future _getMsgList(int sessionId, int msgIdBegin, int count, SessionType sessionType) {
+  Future _getMsgList(int sessionId, int msgIdBegin, int count, SessionType sessionType) async{
     IMGetMsgListReq req = IMGetMsgListReq.create();
     req.userId = client.userID();
     req.sessionId = sessionId;
@@ -192,6 +191,7 @@ class IMGroupService extends IMBaseService {
 }
 
 
+
 class IMSessionService extends IMBaseService{
 
   IMSessionService(IMBaseClient client) : super(client);
@@ -201,13 +201,19 @@ class IMSessionService extends IMBaseService{
     return ServiceID.SID_BUDDY_LIST.value;
   }
 
+  updateSignInfo(signInfo){
+    IMChangeSignInfoReq req = IMChangeSignInfoReq.create();
+    req.userId = client.userID();
+    req.signInfo = signInfo;
+    return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_CHANGE_SIGN_INFO_REQUEST.value);
+  }
+
   requesRecentSessions(int lastTime){
     IMRecentContactSessionReq req = IMRecentContactSessionReq.create();
     req.latestUpdateTime = lastTime;
     req.userId = client.userID();
     return fetchApi(req, BuddyListCmdID.CID_BUDDY_LIST_RECENT_CONTACT_SESSION_REQUEST.value);
   }
-
 
   requestContacts(int lastTime) {
     IMAllUserReq req = IMAllUserReq.create();
@@ -231,6 +237,8 @@ class IMSessionService extends IMBaseService{
       return  IMAllUserRsp.fromBuffer(pdu.buffer.sublist(16));
     } else if(BuddyListCmdID.CID_BUDDY_LIST_USER_INFO_RESPONSE.value == commandId){
       return IMUsersInfoRsp.fromBuffer(pdu.buffer.sublist(16));
+    } else if(BuddyListCmdID.CID_BUDDY_LIST_CHANGE_SIGN_INFO_RESPONSE.value == commandId){
+      return IMChangeSignInfoRsp.fromBuffer(pdu.buffer.sublist(16));
     }
     return null;
   }

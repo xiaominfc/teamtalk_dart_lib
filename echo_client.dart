@@ -11,20 +11,23 @@ import './pb/IM.BaseDefine.pb.dart';
 
 
 test(IMClient imClient){
+  imClient.updateSignInfo("测试签名1").then((result){
+    print(result);
+  });
+
   imClient.requestAllGroupVersion().then((result){
     print(result);
-
   });
   imClient.requestGroupInfoByIds([4]).then((result){
     print(result);
   });
   imClient.requestContacts(0).then((result){
-      print(result);
+    print(result);
   });
 
   imClient.requestSessions(0).then((sessions){
-      print('sessions');
-      print(sessions);
+      //print('sessions');
+      //print(sessions);
     });
 
   
