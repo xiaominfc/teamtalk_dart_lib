@@ -13,6 +13,7 @@ import "package:pointycastle/src/registry/registry.dart" as registry;
 import "package:pointycastle/src/ufixnum.dart";
 import 'dart:convert';
 import "dart:typed_data";
+import 'utils.dart';
 
 class TTPKCSPadding extends BasePadding {
   static final FactoryConfig FACTORY_CONFIG =
@@ -102,9 +103,14 @@ class TTSecurity {
   //after convert Uint8List to base64 string then use decryptText
   String decryptText(String message) {
     List data = decryptionCipher.process(base64.decode(message));
+    int index = 0;
+    while(data[data.length - index -1 ] == 0){
+      index ++;
+    }
     try {
-      return utf8.decode(data);
-    } catch (e) {}
+      return utf8.decode(data.sublist(0, Utils.utf8Length(data)));
+    } catch (e) {
+    }
     return "";
   }
 }
