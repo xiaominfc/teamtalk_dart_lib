@@ -13,7 +13,6 @@ import "package:pointycastle/src/registry/registry.dart" as registry;
 import "package:pointycastle/src/ufixnum.dart";
 import 'dart:convert';
 import "dart:typed_data";
-import 'utils.dart';
 
 class TTPKCSPadding extends BasePadding {
   static final FactoryConfig FACTORY_CONFIG =
