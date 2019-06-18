@@ -34,7 +34,7 @@ class IMHeartService extends IMBaseService {
   }
 
   unPackPdu(ImPdu pdu, int commandId) {
-    print('heart beat');
+    //print('heart beat');
   }
 
   int serviceId() {
@@ -129,20 +129,29 @@ class IMMessageService extends IMBaseService {
     return fetchApi(req, MessageCmdID.CID_MSG_UNREAD_CNT_REQUEST.value);
   }
 
-
-  void sureReadMessage(IMMsgData data) {
+  void sureReadMessage(msgId,sessionId,sessionType) {
     IMMsgDataReadAck readAck = IMMsgDataReadAck.create();
-    readAck.msgId = data.msgId;
-    readAck.userId = data.toSessionId;
-    readAck.sessionId = data.fromUserId;
-    readAck.sessionType = SessionType.SESSION_TYPE_GROUP;
-    if (data.msgType == MsgType.MSG_TYPE_SINGLE_TEXT ||
-        data.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
-      readAck.sessionType = SessionType.SESSION_TYPE_SINGLE;
-    }
-    //print(readAck);
+    readAck.msgId = msgId;
+    readAck.userId = client.userID();
+    readAck.sessionId = sessionId;
+    readAck.sessionType = sessionType;
     requestForPbMsg(readAck, MessageCmdID.CID_MSG_READ_ACK.value);
   }
+
+
+  // void sureReadMessage(IMMsgData data) {
+  //   IMMsgDataReadAck readAck = IMMsgDataReadAck.create();
+  //   readAck.msgId = data.msgId;
+  //   readAck.userId = data.toSessionId;
+  //   readAck.sessionId = data.fromUserId;
+  //   readAck.sessionType = SessionType.SESSION_TYPE_GROUP;
+  //   if (data.msgType == MsgType.MSG_TYPE_SINGLE_TEXT ||
+  //       data.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
+  //     readAck.sessionType = SessionType.SESSION_TYPE_SINGLE;
+  //   }
+  //   //print(readAck);
+  //   requestForPbMsg(readAck, MessageCmdID.CID_MSG_READ_ACK.value);
+  // }
 
   int serviceId() {
     return ServiceID.SID_MSG.value;
@@ -168,7 +177,7 @@ class IMGroupService extends IMBaseService {
       req.groupVersionList.add(info);
     });
     req.userId = client.userID();
-    print(req);
+    //print(req);
     return fetchApi(req, GroupCmdID.CID_GROUP_INFO_REQUEST.value);
   }
 

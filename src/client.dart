@@ -32,7 +32,7 @@ class IMServiceManager {
     int offset = 0;
     int start = 0;
     socket.listen((event) {
-      print(event);
+      //print(event);
       if (event == RawSocketEvent.read) {
         while (socket.available() > 0) {
           var data = socket.read(READBUFSIZE);
@@ -68,7 +68,7 @@ class IMServiceManager {
   void handle(ImPdu pdu) {
     int serviceId = pdu.serviceId;
     int commandId = pdu.commandId;
-    print("serviceId:$serviceId   commandId:$commandId");
+    //print("serviceId:$serviceId   commandId:$commandId");
 
     var service = servicesMap[serviceId];
     if (service != null) {
@@ -265,8 +265,18 @@ class IMClient extends IMBaseClient {
 
   //确认读过该消息
   sureReadMsg(IMMsgData data) {
-    _imMessageService.sureReadMessage(data);
+    var sessionType = SessionType.SESSION_TYPE_GROUP;
+    if (data.msgType == MsgType.MSG_TYPE_SINGLE_TEXT ||
+        data.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
+      sessionType = SessionType.SESSION_TYPE_SINGLE;
+    }
+    return sureReadMessage(data.msgId,data.fromUserId,sessionType);
   }
+
+  sureReadMessage(msgId,sessionId,sessionType) {
+    return _imMessageService.sureReadMessage(msgId,sessionId,sessionType);
+  }
+  //sureReadMsg()
   
 
   //获取所有群组的版本信息

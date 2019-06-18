@@ -85,7 +85,7 @@ class ImPdu {
 
   static ImPdu buildFromBuffer(List<int> data) {
     if(data.length < 16){
-      print('cache too min:' + data.length.toString());
+      //print('cache too min:' + data.length.toString());
       return null;
     }
     
@@ -100,7 +100,7 @@ class ImPdu {
       pdu.length = length;
       return pdu;
     }else {
-      print('$length != ' + data.length.toString());
+      //print('$length != ' + data.length.toString());
     }
     return null;
   }
@@ -128,7 +128,7 @@ abstract class IMBaseService {
          func(msg);  
       }
     }else {
-      print("not for:" + pdu.commandId.toString());
+      //print("not for:" + pdu.commandId.toString());
     }
   }
 
