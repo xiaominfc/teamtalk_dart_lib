@@ -27,7 +27,7 @@ dart ./echo_client.dart
 
 ### web测试端
 
-[web_im](http://chat.xiaominfc.com/im)
+[web_im](http://im.xiaominfc.com)
 
 登录 然后跟xiaominfc聊一下 哈哈
 
