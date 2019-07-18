@@ -168,7 +168,7 @@ class IMGroupService extends IMBaseService {
     return fetchApi(req, GroupCmdID.CID_GROUP_NORMAL_LIST_REQUEST.value);
   }
 
-  requestGroupInfo(List ids) {
+  Future requestGroupInfo(List ids) async{
     IMGroupInfoListReq req = IMGroupInfoListReq.create();
     ids.forEach((id){
       GroupVersionInfo info = GroupVersionInfo();
