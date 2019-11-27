@@ -235,6 +235,25 @@ class IMClient extends IMBaseClient {
     // });
   }
 
+  // 发送 语音消息 单聊
+  sendAudioMsg(List<int> audioData, int toID)  async{
+    IMMsgData data = IMMsgData.create();
+    data.toSessionId = toID;
+    data.msgData = audioData;
+    data.msgType = MsgType.MSG_TYPE_SINGLE_AUDIO;
+    return _sendMsg(data);
+  }
+
+  // 发送 语音消息 群聊
+  sendGroupAudioMsg(List<int> audioData, int groupId)  async{
+    IMMsgData data = IMMsgData.create();
+    data.toSessionId = groupId;
+    data.msgData = audioData;
+    data.msgType = MsgType.MSG_TYPE_GROUP_AUDIO;
+    return _sendMsg(data);
+  }
+
+
   // 发送 一条文本消息 单聊
   sendTextMsg(String msg, int toID)  async{
     IMMsgData data = IMMsgData.create();
